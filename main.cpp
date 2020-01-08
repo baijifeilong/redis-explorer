@@ -1,6 +1,10 @@
-#include <iostream>
+#include <QApplication>
+#include <QWidget>
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+int main(int argc, char **argv) {
+    new QApplication(argc, argv);
+    auto window = new QWidget();
+    window->setWindowTitle("Hello World");
+    window->show();
+    return QApplication::exec();
 }
