@@ -11,7 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("Redis Explorer")
         self.resize(QtWidgets.QDesktopWidget().availableGeometry(self).size() * 0.5)
         self.tree = QtWidgets.QTreeWidget()
-        self.label = QtWidgets.QLabel()
+        self.label = QtWidgets.QTextEdit()
         self.tree.setColumnCount(2)
         self.tree.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.tree.setHeaderHidden(True)
@@ -31,7 +31,7 @@ class MainWindow(QtWidgets.QMainWindow):
             value = self.redis.get(item.text(0))
             value = value.decode()
             text = json.dumps(json.loads(value), ensure_ascii=False, indent=4)
-            self.label.setText(text)
+            self.label.setPlainText(text)
 
         self.tree.itemClicked.connect(item_clicked)
 
@@ -58,6 +58,7 @@ def main():
     QtWidgets.QApplication()
     main_window = MainWindow()
     main_window.show()
+    QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
     return QtWidgets.QApplication.exec_()
 
 
