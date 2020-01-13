@@ -1,6 +1,6 @@
 import json
 
-from PySide2 import QtGui, QtWidgets
+from PySide2 import QtGui, QtWidgets, QtCore
 from redis.client import StrictRedis
 
 
@@ -12,6 +12,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resize(QtWidgets.QDesktopWidget().availableGeometry(self).size() * 0.5)
         self.tree = QtWidgets.QTreeWidget()
         self.label = QtWidgets.QTextEdit()
+        font = self.label.font()
+        font.setPointSize(12)
+        self.label.setFont(font)
         self.tree.setColumnCount(2)
         self.tree.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.tree.setHeaderHidden(True)
@@ -23,6 +26,12 @@ class MainWindow(QtWidgets.QMainWindow):
         splitter.addWidget(scroll_area)
         splitter.setSizes([1, 1])
         self.setCentralWidget(splitter)
+        toolbar = self.addToolBar("")
+        toolbar.setMovable(False)
+        print(toolbar.iconSize())
+        toolbar.setIconSize(QtCore.QSize(32, 32))
+        toolbar.addAction(QtGui.QIcon("resources/list-add.png"), "").triggered.connect(lambda: self.plus_font(1))
+        toolbar.addAction(QtGui.QIcon("resources/list-remove.png"), "").triggered.connect(lambda: self.plus_font(-1))
         self.redis = StrictRedis()
 
         def item_clicked(item: QtWidgets.QTreeWidgetItem):
@@ -34,6 +43,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label.setPlainText(text)
 
         self.tree.itemClicked.connect(item_clicked)
+
+    def plus_font(self, number: int):
+        font = self.label.font()
+        font.setPointSize(font.pointSize() + number)
+        self.label.setFont(font)
 
     def showEvent(self, event: QtGui.QShowEvent):
         super().showEvent(event)
