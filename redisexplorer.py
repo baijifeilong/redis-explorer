@@ -1,4 +1,5 @@
 import json
+import re
 
 from PySide2 import QtGui, QtWidgets, QtCore
 from redis.client import StrictRedis
@@ -28,10 +29,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(splitter)
         toolbar = self.addToolBar("")
         toolbar.setMovable(False)
-        print(toolbar.iconSize())
         toolbar.setIconSize(QtCore.QSize(32, 32))
         toolbar.addAction(QtGui.QIcon("resources/list-add.png"), "").triggered.connect(lambda: self.plus_font(1))
         toolbar.addAction(QtGui.QIcon("resources/list-remove.png"), "").triggered.connect(lambda: self.plus_font(-1))
+        toolbar.addAction(QtGui.QIcon("resources/view-refresh.png"), "").triggered.connect(lambda: self.refresh())
         self.redis = StrictRedis()
 
         def item_clicked(item: QtWidgets.QTreeWidgetItem):
@@ -40,7 +41,9 @@ class MainWindow(QtWidgets.QMainWindow):
             value = self.redis.get(item.text(0))
             value = value.decode()
             text = json.dumps(json.loads(value), ensure_ascii=False, indent=4)
-            self.label.setPlainText(text)
+            text = text.replace("  ", "&nbsp;").replace("\n", "<br/>").replace(":", "<font color=red>:</font>")
+            text = re.sub(r'"(.*?)(?<!\\)"', r'<font color=green>"\g<1>"</font>', text)
+            self.label.setHtml(text)
 
         self.tree.itemClicked.connect(item_clicked)
 
@@ -49,8 +52,9 @@ class MainWindow(QtWidgets.QMainWindow):
         font.setPointSize(font.pointSize() + number)
         self.label.setFont(font)
 
-    def showEvent(self, event: QtGui.QShowEvent):
-        super().showEvent(event)
+    def refresh(self):
+        self.tree.clear()
+        self.label.setPlainText("")
         keys = sorted(self.redis.keys("*"))
         keys = [x.decode() for x in keys]
         dct = dict()
@@ -66,6 +70,10 @@ class MainWindow(QtWidgets.QMainWindow):
             for key in keys:
                 item.addChild(QtWidgets.QTreeWidgetItem([key]))
             self.tree.addTopLevelItem(item)
+
+    def showEvent(self, event: QtGui.QShowEvent):
+        super().showEvent(event)
+        self.refresh()
 
 
 def main():
